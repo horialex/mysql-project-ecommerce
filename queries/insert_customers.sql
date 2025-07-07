@@ -1,0 +1,16 @@
+INSERT INTO Customers (firstName, lastName, email, address, phone) VALUES
+('Encian', 'Horatiu', 'hori_alex@yahoo.com', 'Bistrita George Enescu nr6. E', '+4074790596'),
+('Encian', 'Liliana', 'liliana_encian@yahoo.com', 'Bistrita George Enescu nr6. E', '+4074790597'),
+('John', 'Doe', 'john_doe@gmail.com', 'New York Baker Street 2', '+12125550123'),
+('Alice', 'Smith', 'alice.smith@example.com', '123 Maple Ave, Springfield', '+14155552671'),
+('Bob', 'Johnson', 'bob.johnson@example.com', '456 Oak Street, Seattle', '+12065551234'),
+('Maria', 'Gonzalez', 'maria.gonzalez@example.mx', 'Calle 5 de Mayo 123, Mexico City', '+525512345678'),
+('Liam', 'Brown', 'liam.brown@example.com', '789 Pine Street, Denver, CO', '+13035550123'),
+('Sophie', 'Dubois', 'sophie.dubois@example.fr', '12 Rue de Rivoli, Paris', '+33123456789'),
+('Chen', 'Wei', 'chen.wei@example.cn', '88 Nanjing Road, Shanghai', '+8613800138000'),
+('Aarav', 'Patel', 'aarav.patel@example.in', '22 MG Road, Mumbai', '+919820012345'),
+('Emma', 'Williams', 'emma.williams@example.com', '654 Cedar Blvd, Austin, TX', '+15125559876'),
+('Oliver', 'Miller', 'oliver.miller@example.com', '321 Birch Lane, Portland, OR', '+15035557654'),
+('Isabella', 'Martinez', 'isabella.martinez@example.es', 'Calle Gran Via 45, Madrid', '+34912345678'),
+('Noah', 'Anderson', 'noah.anderson@example.com', '77 Sunset Blvd, Los Angeles, CA', '+13105551234'),
+('Yuki', 'Takahashi', 'yuki.takahashi@example.jp', '3-2-1 Shibuya, Tokyo', '+81312345678');
