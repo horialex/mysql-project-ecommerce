@@ -67,3 +67,30 @@ ALTER TABLE `OrderItems`
 ADD CONSTRAINT `fk_orderitems_product_id`
 FOREIGN KEY(`product_id`) REFERENCES `Products`(`id`)
 ON DELETE RESTRICT;
+
+
+
+-- TRIGGERS --
+
+-- Add a trigger to copy the price form Products table before inserting a new row in OrderItems table
+-- This is usefull so we don;t add manually the price and makes sure that the price that the product is ordered is the 
+-- correct price at that date
+
+DELIMITER // -- change the delimiter from ;  to // so you can execute multiple statements
+             -- for the same trigger as a whole and not individually
+
+CREATE TRIGGER tr_orderitems_before_insert_product_price
+BEFORE INSERT ON OrderItems
+FOR EACH ROW
+BEGIN
+    DECLARE current_price DECIMAL(8,2);
+
+    SELECT price INTO current_price
+    FROM Products
+    WHERE id = NEW.product_id;
+
+    SET NEW.price = current_price;
+END;
+// -- ends trigger definition
+
+DELIMITER ; -- change back the delimiter
