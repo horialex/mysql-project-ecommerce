@@ -1,0 +1,452 @@
+MySQL Learning Exercises – E-commerce Schema
+This document contains a progressive list of SQL exercises based on an e-commerce database schema. Exercises are categorized by difficulty: Easy, Medium, and Hard.
+
+✅ Easy Level – Basics and Retrieval
+1. List all customers with their first name, last name, and email.
+2. Find all products in the database, displaying name and price.
+3. Retrieve all orders made by a specific customer by their email.
+4. List products priced above €50, ordered by price descending.
+5. Count the number of customers in your database.
+6. Get the total number of products per category.
+7. List the 5 most recent orders placed.
+
+
+
+✅ Easy Level – Basics and Retrieval - Solutions
+
+1. List all customers with their first name, last name, and email.
+
+Result:
+SELECT firstName, lastName, email FROM Customers;
+
+
+2. Find all products in the database, displaying name and price.
+
+Result:
+SELECT name, price FROM Products;
+
+
+3. Retrieve all orders made by a specific customer by their email.
+
+Result:
+SELECT firstName, lastName, Orders.id AS order_id 
+FROM Customers 
+INNER JOIN Orders
+ON Orders.customer_id = Customers.id
+WHERE email = "hori_alex@yahoo.com";
+
+
+4. List products priced above €50, ordered by price descending.
+
+Result:
+SELECT id, name, price from Products WHERE price > 50 
+ORDER BY price DESC;
+
+
+5. Count the number of customers in your database.
+
+Result:
+SELECT COUNT(*) FROM Customers;
+
+
+6. Get the total number of products per category.
+
+Result:
+SELECT Categories.name as category_name, COUNT(*) as nr_of_products FROM Products
+INNER JOIN Categories
+ON Products.category_id = Categories.id
+GROUP BY Categories.name;
+
+
+7. List the 5 most recent orders placed.
+Result:
+SELECT id as order_id, date FROM Orders ORDER BY date DESC LIMIT 5;
+
+
+
+
+⚙️ Medium Level – Joins, Aggregates, and Filtering
+1.  List all orders with the customer’s full name and order date.
+2.  Show each product with its category name using a JOIN.
+3.  Get the total revenue per product (sum of quantity × price in OrderItems).
+4.  List customers who have placed more than one order.
+5.  Get the total number of items in each order.
+6.  Find the most expensive product in each category.
+6.1 Find max price per category
+7.  List all products that have never been ordered.
+8.  Show each order’s total value and sort by highest value.
+9.  Get all customers who haven’t placed any orders.
+10. List all orders with the status "Pending" or "Cancelled".
+
+
+
+⚙️ Medium Level – Joins, Aggregates, and Filtering - Solutions
+
+
+1.  List all orders with the customer’s full name and order date.
+Result:
+
+SELECT Orders.id as order_id, CONCAT(firstName, " ", lastName) as full_name, date(Orders.date) as order_date
+FROM Customers 
+INNER JOIN Orders
+ON Customers.id = Orders.customer_id;
+
+
+2.  Show each product with its category name using a JOIN.
+Result:
+SELECT Products.name AS product_name, Categories.name AS category_name
+FROM Products INNER JOIN Categories
+ON Products.category_id = Categories.id;
+
+
+
+3.  Get the total revenue per product (sum of quantity × price in OrderItems).
+Result:
+SELECT Products.id, Products.name AS product_name, SUM(OrderItems.quantity * OrderItems.price) AS total_revenue
+FROM Products
+INNER JOIN OrderItems ON OrderItems.product_id = Products.id
+GROUP BY Products.id, Products.name;
+
+
+4.  List customers who have placed more than one order.
+Result:
+SELECT Customers.id, CONCAT(firstName, ' ', lastName) AS full_name, COUNT(Orders.customer_id) AS number_of_orders
+FROM Orders
+INNER JOIN Customers ON Orders.customer_id = Customers.id
+GROUP BY Orders.customer_id, firstName, lastName
+HAVING number_of_orders > 1;
+
+
+5.  Get the total number of items in each order.
+Result:
+SELECT order_id, SUM(quantity) as total_items
+FROM OrderItems
+GROUP BY order_id;
+
+
+6.1  Find the most expensive product in each category.
+Result:
+SELECT p.id, 
+	   p.category_id,
+       p.price,
+       p.name AS product_name,
+       c.name AS category_name
+FROM Products p
+INNER JOIN 
+(SELECT category_id, max(price) as max_price 
+FROM Products p
+GROUP BY category_id) AS max_prices
+ON p.category_id = max_prices.category_id AND p.price = max_prices.max_price
+JOIN Categories c
+ON p.category_id = c.id;
+
+
+
+6.1  Find max price per category
+Result:
+SELECT category_id, Categories.name, max_price_per_category
+FROM Categories 
+INNER JOIN 
+		(SELECT category_id, MAX(price) as max_price_per_category 
+		FROM Products
+		GROUP BY (category_id)) AS a
+ON Categories.id = a.category_id
+
+
+7. List all products that have never been ordered
+Result:
+SELECT id,
+name AS product_name
+FROM Products 
+WHERE id NOT IN(SELECT DISTINCT product_id FROM OrderItems)
+
+
+
+8.  Show each order’s total value and sort by highest value.
+Result:
+SELECT DISTINCT order_id, sum(price) as total
+FROM OrderItems
+GROUP BY order_id
+ORDER BY total DESC;
+
+
+
+9.  Get all customers who haven’t placed any orders.
+Result:
+SELECT id, concat(firstName, " ", lastName) as customer_name FROM Customers
+WHERE id NOT IN (SELECT DISTINCT customer_id FROM Orders)
+
+
+10. List all orders with the status "Pending" or "Cancelled".
+Result:
+SELECT * FROM Orders WHERE status_id IN
+(SELECT id FROM OrderStatus WHERE name IN ( "Cancelled", "Pending"))
+
+
+
+
+## 🔥 Hard Level – Subqueries, Window Functions, Data Manipulation
+
+1. **Find the customer** who has spent the most money in total.
+2. **List top 3 best-selling products** based on quantity sold.
+3. **For each order**, show the number of unique products included.
+4. **Get the average number of items per order** for each customer.
+5. **List all customers and their most recent order date**, including those who never ordered.
+6. **Calculate cumulative sales over time** (by day or month) using a window function or CTE.
+7. **Update the price** of all products in a specific category by increasing it by 10%.
+8. **Delete all orders with status "Cancelled"**, including their OrderItems.
+9. **Insert a new order** with multiple OrderItems for an existing customer.
+10. **Create a view** that shows simplified order summaries (customer name, order date, total amount, status).
+
+
+
+## 🔥 Hard Level – Subqueries, Window Functions, Data Manipulation
+
+
+1. **Find the customer** who has spent the most money in total.
+Solution:
+
+SELECT 
+    c.id,
+    CONCAT(c.firstName, ' ', c.lastName) AS customer_name,
+    tt.total_spent
+FROM
+    Customers c
+        INNER JOIN
+    (SELECT 
+        o.id AS order_id, o.customer_id, ot.total_spent
+    FROM
+        Orders o
+    JOIN (SELECT 
+        order_id, SUM(price) AS total_spent
+    FROM
+        OrderItems
+    GROUP BY order_id
+    ORDER BY total_spent DESC
+    LIMIT 1) AS ot ON o.id = ot.order_id) AS tt ON c.id = tt.customer_id
+
+
+
+    
+2. **List top 3 best-selling products** based on quantity sold.
+Solution:
+
+SELECT p.id AS product_id, p.name AS product_name, t.items_sold FROM Products p
+INNER JOIN (
+    Select product_id, COUNT(product_id) as items_sold from OrderItems
+    GROUP BY product_id
+    ORDER BY items_sold DESC
+    LIMIT 3) t
+ON t.product_id = p.id
+ORDER BY t.items_sold DESC;
+
+
+
+3. **For each order**, show the number of unique products included.
+Solution:
+
+SELECT order_id,
+       COUNT(DISTINCT product_id) AS unique_product_per_order
+FROM OrderItems
+GROUP BY order_id;
+
+
+
+4. **Get the average number of items per order** for each customer.
+Solution:
+
+SELECT 
+    customer_id,
+    CONCAT(Customers.firstName, " ", Customers.lastName) as customer_name,
+    TRUNCATE(AVG(total_items_per_order), 2) AS average_items_per_customer
+FROM Orders 
+INNER JOIN (
+    SELECT  
+        order_id,
+        TRUNCATE(SUM(quantity), 2) AS total_items_per_order
+    FROM OrderItems 
+    GROUP BY order_id
+) av
+ON Orders.id = av.order_id
+INNER JOIN Customers 
+ON Customers.id = Orders.customer_id
+GROUP BY customer_id
+ORDER BY customer_id;
+
+
+
+
+5. **List all customers and their most recent order date**, including those who never ordered.
+Solution:
+
+SELECT  c.id as customer_id,
+        CONCAT(c.firstName, " ", c.lastName) as customer_name,
+        latest_orders .latest_order_date 
+FROM Customers c 
+LEFT JOIN (
+    SELECT  customer_id, 
+            MAX(date) as latest_order_date
+    FROM Orders GROUP BY customer_id
+) latest_orders 
+ON c.id = sq.customer_id
+
+
+
+
+
+6. **Calculate cumulative sales over time** (by day or month) using a window function or CTE.
+Solution v1 for Monthly cumulative sales using both window function and CTE:
+
+WITH order_totals AS (
+SELECT  oi.order_id,
+        SUM(oi.quantity * oi.price) as order_total
+FROM OrderItems oi
+GROUP BY oi.order_id),
+
+
+monthly_totals  AS (
+    SELECT  DATE_FORMAT(o.date, '%Y-%m') AS month,
+            SUM(ot.order_total) AS monthly_total
+    FROM order_totals ot
+    JOIN Orders o
+    ON ot.order_id = o.id
+    GROUP BY DATE_FORMAT(o.date, '%Y-%m')
+    )
+SELECT
+       month,
+       monthly_total,
+       SUM(monthly_total) OVER(
+         ORDER BY month
+         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS cumulative_total
+FROM monthly_totals 
+ORDER BY month;
+
+
+Solution v2: for daily cumulative sales using only window function:
+Select  order_date,
+        daily_total,
+        SUM(daily_total) OVER(
+            ORDER BY order_date
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) as cumulative_total
+FROM
+(SELECT 
+        DATE(o.date) as order_date,
+        SUM(oi.quantity * oi.price) as daily_total
+FROM Orders o
+INNER JOIN OrderItems oi 
+ON o.id = oi.order_id
+GROUP BY order_date
+) AS daily_sales
+ORDER BY order_date
+
+
+
+
+7. **Update the price** of all products in a specific category by increasing it by 10%.
+Solution only with id:
+
+UPDATE Products 
+SET price = (price * 1.1)
+WHERE category_id = 1;
+
+Solution with category name:
+UPDATE Products p
+JOIN Categories c
+ON p.category_id = c.id
+SET p.price = p.price * 1.1
+WHERE c.name = 'Gaming'
+
+
+
+8. **Delete all orders with status "Cancelled"**, including their OrderItems.
+Solution:
+-- First I need to get the id of the Cancelled orders - I will use a CTE for this
+-- Than I remove all the OrderItems first 
+-- Than I remove all the Orders
+
+--> DELETE OrderItems::
+WITH cancelled_orders AS (
+    SELECT o.id AS order_id 
+    FROM Orders o
+    JOIN OrderStatus os
+    ON o.status_id = os.id
+    WHERE name = "Cancelled"
+)
+DELETE FROM OrderItems
+WHERE order_id IN (SELECT order_id FROM cancelled_orders);
+
+
+--> DELETE Orders::
+WITH cancelled_orders AS (
+    SELECT o.id AS order_id
+    FROM Orders o
+    JOIN OrderStatus os
+    ON o.status_id = os.id
+    WHERE os.name = 'Cancelled'
+)
+
+DELETE FROM Orders
+WHERE id IN (SELECT order_id FROM cancelled_orders);
+
+
+Alternative Solution without CTE - (This is from ChatGPT 😁)
+
+-- Delete OrderItems first
+DELETE oi
+FROM OrderItems oi
+JOIN Orders o ON oi.order_id = o.id
+JOIN OrderStatus s ON o.status_id = s.id
+WHERE s.name = 'Cancelled';
+
+-- Then delete Orders
+DELETE o
+FROM Orders o
+JOIN OrderStatus s ON o.status_id = s.id
+WHERE s.name = 'Cancelled';
+
+
+
+9. **Insert a new order** with multiple OrderItems for an existing customer.
+Solution:
+
+-- 1. Create the order
+INSERT INTO Orders (customer_id, status_id, date)
+VALUES (3, 1, NOW());
+
+-- 2. Store new order ID
+SET @order_id = LAST_INSERT_ID();
+
+-- 3. Insert items for the order
+INSERT INTO OrderItems (order_id, product_id, quantity, price)
+VALUES
+(@order_id, 5, 2, 19.99),
+(@order_id, 7, 1, 49.50),
+(@order_id, 9, 4, 5.25);
+
+
+
+
+10. **Create a view** that shows simplified order summaries (customer name, order date, total amount, status).
+Solution:
+
+CREATE VIEW OrderSummaries AS 
+WITH order_totals AS (
+    SELECT  oi.order_id,
+            SUM(oi.quantity * oi.price) AS total_amount
+    FROM OrderItems oi
+    GROUP BY oi.order_id
+)
+SELECT  o.id,
+        CONCAT(c.firstName," ", c.lastName) as customer_name, 
+        o.date,
+        total_amount,
+        os.name AS order_status
+FROM Orders o
+JOIN Customers c
+ON o.customer_id = c.id
+JOIN order_totals
+ON o.id = order_totals.order_id
+JOIN OrderStatus os
+ON o.status_id = os.id;

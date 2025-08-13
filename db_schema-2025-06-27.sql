@@ -18,7 +18,7 @@ CREATE TABLE `Products`(
 );
 
 CREATE TABLE `Orders`(
-    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMAR Y KEY,
     `customer_id` INT UNSIGNED NOT NULL,
     `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `status_id` TINYINT UNSIGNED NOT NULL DEFAULT '1'
@@ -44,7 +44,7 @@ CREATE TABLE `OrderStatus`(
 );
 
 
--- FOREIGN KEYS --
+-- FOREIGN KEYS AND DELETE CONSTRAINTS --
 ALTER TABLE `Orders`
 ADD CONSTRAINT `fk_orders_status` 
 FOREIGN KEY(`status_id`) REFERENCES `OrderStatus`(`id`);
@@ -61,7 +61,8 @@ FOREIGN KEY(`customer_id`) REFERENCES `Customers`(`id`);
 ALTER TABLE `Products`
 ADD CONSTRAINT `fk_products_category_id`
 FOREIGN KEY(`category_id`) REFERENCES `Categories`(`id`)
-ON DELETE SET NULL;
+ON DELETE SET NULL
+ON UPDATE CASCADE;
 
 ALTER TABLE `OrderItems`
 ADD CONSTRAINT `fk_orderitems_product_id`
@@ -73,7 +74,7 @@ ON DELETE RESTRICT;
 -- TRIGGERS --
 
 -- Add a trigger to copy the price form Products table before inserting a new row in OrderItems table
--- This is usefull so we don;t add manually the price and makes sure that the price that the product is ordered is the 
+-- This is usefull so we don't add manually the price and makes sure that the price that the product is ordered is the 
 -- correct price at that date
 
 DELIMITER // -- change the delimiter from ;  to // so you can execute multiple statements
